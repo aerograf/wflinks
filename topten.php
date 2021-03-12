@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * Module: WF-Links
  * Version: v1.0.3
  * Release Date: 21 June 2005
@@ -9,12 +8,17 @@
  * Licence: GNU
  */
 
+use XoopsModules\Wflinks;
+
 require_once __DIR__ . '/header.php';
 
-$GLOBALS['xoopsOption']['template_main'] = 'wflinks_topten.tpl';
-include XOOPS_ROOT_PATH . '/header.php';
+/** @var Wflinks\Helper $helper */
+$helper = Wflinks\Helper::getInstance();
 
-$mytree = new WflinksXoopsTree($xoopsDB->prefix('wflinks_cat'), 'cid', 'pid');
+$GLOBALS['xoopsOption']['template_main'] = 'wflinks_topten.tpl';
+require XOOPS_ROOT_PATH . '/header.php';
+
+$mytree = new Wflinks\Tree($xoopsDB->prefix('wflinks_cat'), 'cid', 'pid');
 
 $action_array = ['hit' => 0, 'rate' => 1];
 $list_array   = ['hits', 'rating'];
@@ -25,19 +29,19 @@ $sort     = (isset($_GET['list']) && in_array($_GET['list'], $action_array)) ? $
 $sort_arr = $action_array[$sort];
 $sortDB   = $list_array[$sort_arr];
 
-$catarray['imageheader'] = WflinksUtility::getImageHeader();
-$catarray['letters']     = WflinksUtility::getLetters();
-$catarray['toolbar']     = WflinksUtility::getToolbar();
+$catarray['imageheader'] = Wflinks\Utility::getImageHeader();
+$catarray['letters']     = Wflinks\Utility::getLetters();
+$catarray['toolbar']     = Wflinks\Utility::getToolbar();
 $xoopsTpl->assign('catarray', $catarray);
 
-$links    = [];
-$result = $xoopsDB->query('SELECT cid, title, pid FROM ' . $xoopsDB->prefix('wflinks_cat') . ' WHERE pid=0 ORDER BY ' . $xoopsModuleConfig['sortcats']);
+$links  = [];
+$result = $xoopsDB->query('SELECT cid, title, pid FROM ' . $xoopsDB->prefix('wflinks_cat') . ' WHERE pid=0 ORDER BY ' . $helper->getConfig('sortcats'));
 
 $e = 0;
 while (list($cid, $ctitle) = $xoopsDB->fetchRow($result)) {
-    if (true === WflinksUtility::checkGroups($cid)) {
+    if (true === Wflinks\Utility::checkGroups($cid)) {
         $query = 'SELECT lid, cid, title, hits, rating, votes FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE published > 0 AND published <= ' . time() . ' AND (expired = 0 OR expired > ' . time() . ') AND offline = 0 AND (cid=' . (int)$cid;
-        $links   = $mytree->getAllChildId($cid);
+        $links = $mytree->getAllChildId($cid);
         foreach ($links as $link) {
             $query .= ' or cid=' . $link . '';
         }
@@ -46,11 +50,11 @@ while (list($cid, $ctitle) = $xoopsDB->fetchRow($result)) {
         $filecount = $xoopsDB->getRowsNum($result2);
 
         if ($filecount > 0) {
-            $rankings[$e]['title'] = $wfmyts->htmlSpecialCharsStrip($ctitle);
+            $rankings[$e]['title'] = htmlspecialchars($ctitle);
             $rank                  = 1;
             while (list($did, $dcid, $dtitle, $hits, $rating, $votes) = $xoopsDB->fetchRow($result2)) {
                 $catpath                = basename($mytree->getPathFromId($dcid, 'title'));
-                $dtitle                 = $wfmyts->htmlSpecialCharsStrip($dtitle);
+                $dtitle                 = htmlspecialchars($dtitle);
                 $rankings[$e]['file'][] = [
                     'id'       => $did,
                     'cid'      => $dcid,
@@ -59,7 +63,7 @@ while (list($cid, $ctitle) = $xoopsDB->fetchRow($result)) {
                     'category' => $catpath,
                     'hits'     => $hits,
                     'rating'   => number_format($rating, 2),
-                    'votes'    => $votes
+                    'votes'    => $votes,
                 ];
                 ++$rank;
             }
@@ -71,4 +75,4 @@ $xoopsTpl->assign('back', '<a href="javascript:history.go(-1)"><img src="' . XOO
 $xoopsTpl->assign('lang_sortby', $lang_array[$sort_arr]);
 $xoopsTpl->assign('rankings', $rankings);
 $xoopsTpl->assign('module_dir', $xoopsModule->getVar('dirname'));
-include XOOPS_ROOT_PATH . '/footer.php';
+require XOOPS_ROOT_PATH . '/footer.php';

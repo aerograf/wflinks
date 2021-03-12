@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * Module: WF-Links
  * Version: v1.0.3
  * Release Date: 21 June 2005
@@ -9,19 +8,26 @@
  * Licence: GNU
  */
 
+use XoopsModules\Wflinks;
+
 require_once __DIR__ . '/admin_header.php';
 
-$op        = WflinksUtility::cleanRequestVars($_REQUEST, 'op', '');
-$lid       = WflinksUtility::cleanRequestVars($_REQUEST, 'lid', '');
-$requestid = WflinksUtility::cleanRequestVars($_REQUEST, 'requestid', 0);
+/** @var Wflinks\Helper $helper */
+$helper = Wflinks\Helper::getInstance();
 
-switch (strtolower($op)) {
+$op        = Wflinks\Utility::cleanRequestVars($_REQUEST, 'op', '');
+$lid       = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', '');
+$requestid = Wflinks\Utility::cleanRequestVars($_REQUEST, 'requestid', 0);
+
+switch (mb_strtolower($op)) {
     case 'approve':
 
         global $xoopsModule;
         $sql = 'SELECT cid, title, notifypub FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE lid=' . $lid;
         if (!$result = $xoopsDB->query($sql)) {
-            XoopsErrorHandler_HandleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
+            /** @var \XoopsLogger $logger */
+            $logger = \XoopsLogger::getInstance();
+            $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
 
             return false;
         }
@@ -37,9 +43,7 @@ switch (strtolower($op)) {
         $tags['LINK_URL']  = XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/singlelink.php?cid=' . $cid . '&amp;lid=' . $lid;
 
         $sql = 'SELECT title FROM ' . $xoopsDB->prefix('wflinks_cat') . ' WHERE cid=' . $cid;
-        if (!$result = $xoopsDB->query($sql)) {
-            XoopsErrorHandler_HandleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
-        } else {
+        if ($result = $xoopsDB->query($sql)) {
             $row                   = $xoopsDB->fetchArray($result);
             $tags['CATEGORY_NAME'] = $row['title'];
             $tags['CATEGORY_URL']  = XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/viewcat.php?cid=' . $cid;
@@ -49,23 +53,23 @@ switch (strtolower($op)) {
             if (1 == (int)$notifypub) {
                 $notificationHandler->triggerEvent('link', $lid, 'approve', $tags);
             }
+        } else {
+            $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
         }
         redirect_header('newlinks.php', 1, _AM_WFL_SUB_NEWFILECREATED);
         break;
-
     case 'main':
     default:
 
-        global $xoopsModuleConfig;
         xoops_load('XoopsUserUtility');
-        $start = WflinksUtility::cleanRequestVars($_REQUEST, 'start', 0);
+        $start = Wflinks\Utility::cleanRequestVars($_REQUEST, 'start', 0);
         $sql   = 'SELECT * FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE published = 0 ORDER BY lid DESC';
         if (!$result = $xoopsDB->query($sql)) {
-            XoopsErrorHandler_HandleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
+            $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
 
             return false;
         }
-        $new_array       = $xoopsDB->query($sql, $xoopsModuleConfig['admin_perpage'], $start);
+        $new_array       = $xoopsDB->query($sql, $helper->getConfig('admin_perpage'), $start);
         $new_array_count = $xoopsDB->getRowsNum($xoopsDB->query($sql));
 
         xoops_cp_header();
@@ -87,14 +91,14 @@ switch (strtolower($op)) {
         echo "<th width='7%'>" . _AM_WFL_MINDEX_ACTION . "</th>\n";
         echo "</tr>\n";
         if ($new_array_count > 0) {
-            while ($new = $xoopsDB->fetchArray($new_array)) {
+            while (false !== ($new = $xoopsDB->fetchArray($new_array))) {
                 $lid       = (int)$new['lid'];
                 $rating    = number_format($new['rating'], 2);
-                $title     = $wfmyts->htmlSpecialCharsStrip($new['title']);
-                $url       = urldecode($wfmyts->htmlSpecialCharsStrip($new['url']));
-                $logourl   = $wfmyts->htmlSpecialCharsStrip($new['screenshot']);
-                $submitter = XoopsUserUtility::getUnameFromId($new['submitter']);
-                $datetime  = formatTimestamp($new['date'], $xoopsModuleConfig['dateformatadmin']);
+                $title     = htmlspecialchars($new['title']);
+                $url       = urldecode(htmlspecialchars($new['url']));
+                $logourl   = htmlspecialchars($new['screenshot']);
+                $submitter = \XoopsUserUtility::getUnameFromId($new['submitter']);
+                $datetime  = formatTimestamp($new['date'], $helper->getConfig('dateformatadmin'));
 
                 $icon = $new['published'] ? $approved : "<a href='newlinks.php?op=approve&amp;lid=" . $lid . "'>" . $imageArray['approve'] . '</a>&nbsp;';
                 $icon .= "<a href='main.php?op=edit&amp;lid=" . $lid . "'>" . $imageArray['editimg'] . '</a>&nbsp;';
@@ -114,8 +118,8 @@ switch (strtolower($op)) {
         echo "</table>\n";
 
         require_once XOOPS_ROOT_PATH . '/class/pagenav.php';
-        //        $page = ( $new_array_count > $xoopsModuleConfig['admin_perpage'] ) ? _AM_WFL_MINDEX_PAGE : '';
-        $pagenav = new XoopsPageNav($new_array_count, $xoopsModuleConfig['admin_perpage'], $start, 'start');
+        //        $page = ( $new_array_count > $helper->getConfig('admin_perpage') ) ? _AM_WFL_MINDEX_PAGE : '';
+        $pagenav = new \XoopsPageNav($new_array_count, $helper->getConfig('admin_perpage'), $start, 'start');
         echo '<div align="right" style="padding: 8px;">' . $pagenav->renderNav() . '</div>';
         require_once __DIR__ . '/admin_footer.php';
         break;

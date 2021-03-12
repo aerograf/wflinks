@@ -1,6 +1,6 @@
 <?php
+
 /**
- *
  * Module: WF-Links
  * Version: v1.0.3
  * Release Date: 21 June 2005
@@ -12,20 +12,19 @@
  * @param bool   $redirect
  * @return bool
  */
-
 function checkSearchgroups($cid = 0, $permType = 'WFLinkCatPerm', $redirect = false)
 {
     $moduleDirName = basename(__DIR__);
     global $xoopsUser;
 
-    $groups       = is_object($xoopsUser) ? $xoopsUser->getGroups() : XOOPS_GROUP_ANONYMOUS;
-    $gpermHandler = xoops_getHandler('groupperm');
+    $groups           = is_object($xoopsUser) ? $xoopsUser->getGroups() : XOOPS_GROUP_ANONYMOUS;
+    $grouppermHandler = xoops_getHandler('groupperm');
 
-    /** @var XoopsModuleHandler $moduleHandler */
+    /** @var \XoopsModuleHandler $moduleHandler */
     $moduleHandler = xoops_getHandler('module');
     $module        = $moduleHandler->getByDirname($moduleDirName);
 
-    if (!$gpermHandler->checkRight($permType, $cid, $groups, $module->getVar('mid'))) {
+    if (!$grouppermHandler->checkRight($permType, $cid, $groups, $module->getVar('mid'))) {
         if (false === $redirect) {
             return false;
         }
@@ -52,7 +51,7 @@ function wflinks_search($queryarray, $andor, $limit, $offset, $userid)
 
     $sql    = 'SELECT cid, pid FROM ' . $xoopsDB->prefix('wflinks_cat');
     $result = $xoopsDB->query($sql);
-    while ($_search_group_check = $xoopsDB->fetchArray($result)) {
+    while (false !== ($_search_group_check = $xoopsDB->fetchArray($result))) {
         $_search_check_array[$_search_group_check['cid']] = $_search_group_check;
     }
 
@@ -78,7 +77,7 @@ function wflinks_search($queryarray, $andor, $limit, $offset, $userid)
     $ret    = [];
     $i      = 0;
 
-    while ($myrow = $xoopsDB->fetchArray($result)) {
+    while (false !== ($myrow = $xoopsDB->fetchArray($result))) {
         //        if ( false === checkSearchgroups( $myrow['cid'] ) ) {
         //            continue;
         //        }

@@ -1,6 +1,5 @@
 <?php
 /**
- *
  * Module: WF-Links
  * Version: v1.0.3
  * Release Date: 21 June 2005
@@ -9,17 +8,22 @@
  * Licence: GNU
  */
 
+use XoopsModules\Wflinks;
+
 require_once __DIR__ . '/admin_header.php';
+
+/** @var Wflinks\Helper $helper */
+$helper = Wflinks\Helper::getInstance();
 
 global $imageArray, $xoopsModule;
 
-$op  = WflinksUtility::cleanRequestVars($_REQUEST, 'op', '');
-$lid = WflinksUtility::cleanRequestVars($_REQUEST, 'lid', 0);
+$op  = Wflinks\Utility::cleanRequestVars($_REQUEST, 'op', '');
+$lid = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', 0);
 
-switch (strtolower($op)) {
+switch (mb_strtolower($op)) {
     case 'updateNotice':
-        $ack = WflinksUtility::cleanRequestVars($_REQUEST, 'ack', 0);
-        $con = WflinksUtility::cleanRequestVars($_REQUEST, 'con', 1);
+        $ack = Wflinks\Utility::cleanRequestVars($_REQUEST, 'ack', 0);
+        $con = Wflinks\Utility::cleanRequestVars($_REQUEST, 'con', 1);
 
         if ($ack && !$con) {
             $acknowledged = (0 == $ack) ? 1 : 0;
@@ -29,7 +33,9 @@ switch (strtolower($op)) {
             }
             $sql .= ' WHERE lid=' . $lid;
             if (!$result = $xoopsDB->queryF($sql)) {
-                XoopsErrorHandler_HandleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
+                /** @var \XoopsLogger $logger */
+                $logger = \XoopsLogger::getInstance();
+                $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
 
                 return false;
             }
@@ -45,7 +51,9 @@ switch (strtolower($op)) {
             }
             $sql .= ' WHERE lid=' . $lid;
             if (!$result = $xoopsDB->queryF($sql)) {
-                XoopsErrorHandler_HandleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
+                /** @var \XoopsLogger $logger */
+                $logger = \XoopsLogger::getInstance();
+                $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
 
                 return false;
             }
@@ -54,19 +62,16 @@ switch (strtolower($op)) {
         }
         //  redirect_header( "brokenlink.php?op=default", 1, $update_mess );
         break;
-
     case 'delbrokenlinks':
         $xoopsDB->queryF('DELETE FROM ' . $xoopsDB->prefix('wflinks_broken') . ' WHERE lid=' . $lid);
         $xoopsDB->queryF('DELETE FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE lid=' . $lid);
         redirect_header('brokenlink.php?op=default', 1, _AM_WFL_BROKENFILEDELETED);
 
         break;
-
     case 'ignorebrokenlinks':
         $xoopsDB->queryF('DELETE FROM ' . $xoopsDB->prefix('wflinks_broken') . ' WHERE lid=' . $lid);
         redirect_header('brokenlink.php?op=default', 1, _AM_WFL_BROKEN_FILEIGNORED);
         break;
-
     default:
         $result           = $xoopsDB->query('SELECT * FROM ' . $xoopsDB->prefix('wflinks_broken') . ' ORDER BY reportid');
         $totalbrokenlinks = $xoopsDB->getRowsNum($result);
@@ -130,7 +135,7 @@ switch (strtolower($op)) {
                     echo "<td class='even'><a href='mailto:$owneremail'>$ownername</a>";
                 }
                 echo "</td>\n";
-                echo "<td class='even' class='center;'>" . formatTimestamp($date, $xoopsModuleConfig['dateformatadmin']) . "</td>\n";
+                echo "<td class='even' class='center;'>" . formatTimestamp($date, $helper->getConfig('dateformatadmin')) . "</td>\n";
                 echo "<td class='even'><a href='brokenlink.php?op=updateNotice&amp;lid=" . $lid . '&ack=' . (int)$acknowledged . "'>" . $ack_image . " </a></td>\n";
                 echo "<td class='even'><a href='brokenlink.php?op=updateNotice&amp;lid=" . $lid . '&con=' . (int)$confirmed . "'>" . $con_image . "</a></td>\n";
                 echo "<td class='even' class='center;' nowrap>\n";

@@ -4,10 +4,12 @@
 // - XOOPS block admin for each modules -                     //
 // GIJOE <http://www.peak.ne.jp>                   //
 // ------------------------------------------------------------------------- //
-require_once __DIR__ . '/../../../include/cp_header.php';
+use Xmf\Request;
+
+require_once dirname(__DIR__, 3) . '/include/cp_header.php';
 require_once __DIR__ . '/mygrouppermform.php';
 require_once XOOPS_ROOT_PATH . '/class/xoopsblock.php';
-//require_once __DIR__ . '/../include/gtickets.php'; // GIJ
+//require_once  dirname(__DIR__) . '/include/gtickets.php'; // GIJ
 
 $xoops_system_path = XOOPS_ROOT_PATH . '/modules/system';
 // language files
@@ -24,7 +26,7 @@ error_reporting($error_reporting_level);
 
 $group_defs = file("$xoops_system_path/language/$language/admin/groups.php");
 foreach ($group_defs as $def) {
-    if (false !== strpos($def, '_AM_ACCESSRIGHTS') || false !== strpos($def, '_AM_ACTIVERIGHTS')) {
+    if (false !== mb_strpos($def, '_AM_ACCESSRIGHTS') || false !== mb_strpos($def, '_AM_ACTIVERIGHTS')) {
         eval($def);
     }
 }
@@ -33,7 +35,7 @@ if (!is_object($xoopsModule)) {
     redirect_header(XOOPS_URL . '/user.php', 1, _NOPERM);
 }
 // set target_module if specified by $_GET['dirname']
-/** @var XoopsModuleHandler $moduleHandler */
+/** @var \XoopsModuleHandler $moduleHandler */
 $moduleHandler = xoops_getHandler('module');
 if (!empty($_GET['dirname'])) {
     $target_module = $moduleHandler->getByDirname($_GET['dirname']);
@@ -47,7 +49,7 @@ if (!empty($target_module) && is_object($target_module)) {
     $target_mid     = $target_module->getVar('mid');
     $target_mname   = $target_module->getVar('name');
     $query4redirect = '?dirname=' . urlencode(strip_tags($_GET['dirname']));
-} elseif (isset($_GET['mid']) && 0 == $_GET['mid'] || 'blocksadmin' === $xoopsModule->getVar('dirname')) {
+} elseif (Request::hasVar('mid', 'GET') && 0 == $_GET['mid'] || 'blocksadmin' === $xoopsModule->getVar('dirname')) {
     $target_mid     = 0;
     $target_mname   = '';
     $query4redirect = '?mid=0';
@@ -57,18 +59,18 @@ if (!empty($target_module) && is_object($target_module)) {
     $query4redirect = '';
 }
 // check access right (needs system_admin of BLOCK)
-$syspermHandler = xoops_getHandler('groupperm');
-if (!$syspermHandler->checkRight('system_admin', XOOPS_SYSTEM_BLOCK, $xoopsUser->getGroups())) {
+$grouppermHandler = xoops_getHandler('groupperm');
+if (!$grouppermHandler->checkRight('system_admin', XOOPS_SYSTEM_BLOCK, $xoopsUser->getGroups())) {
     redirect_header(XOOPS_URL . '/user.php', 1, _NOPERM);
 }
 // get blocks owned by the module (Imported from xoopsblock.php then modified)
-// $block_arr = XoopsBlock::getByModule( $target_mid ) ;
-$db        = XoopsDatabaseFactory:: getDatabaseConnection();
+// $block_arr = \XoopsBlock::getByModule( $target_mid ) ;
+$db        = \XoopsDatabaseFactory:: getDatabaseConnection();
 $sql       = 'SELECT * FROM ' . $db->prefix('newblocks') . " WHERE mid='$target_mid' ORDER BY visible DESC,side,weight";
 $result    = $db->query($sql);
 $block_arr = [];
-while ($myrow = $db->fetchArray($result)) {
-    $block_arr[] = new XoopsBlock($myrow);
+while (false !== ($myrow = $db->fetchArray($result))) {
+    $block_arr[] = new \XoopsBlock($myrow);
 }
 
 function list_blocks()
@@ -86,7 +88,7 @@ function list_blocks()
         '86400'   => _DAY,
         '259200'  => sprintf(_DAYS, 3),
         '604800'  => _WEEK,
-        '2592000' => _MONTH
+        '2592000' => _MONTH,
     ];
     // displaying TH
     echo "
@@ -164,16 +166,16 @@ function list_blocks()
             }
         }
         // target modules
-        $db            = XoopsDatabaseFactory:: getDatabaseConnection();
+        $db            = \XoopsDatabaseFactory:: getDatabaseConnection();
         $result        = $db->query('SELECT module_id FROM ' . $db->prefix('block_module_link') . " WHERE block_id='$bid'");
         $selected_mids = [];
         while (list($selected_mid) = $db->fetchRow($result)) {
             $selected_mids[] = (int)$selected_mid;
         }
-        /** @var XoopsModuleHandler $moduleHandler */
+        /** @var \XoopsModuleHandler $moduleHandler */
         $moduleHandler = xoops_getHandler('module');
-        $criteria      = new CriteriaCompo(new Criteria('hasmain', 1));
-        $criteria->add(new Criteria('isactive', 1));
+        $criteria      = new \CriteriaCompo(new \Criteria('hasmain', 1));
+        $criteria->add(new \Criteria('isactive', 1));
         $module_list     = $moduleHandler->getList($criteria);
         $module_list[-1] = _AM_TOPPAGE;
         $module_list[0]  = _AM_ALLPAGES;
@@ -300,7 +302,7 @@ function list_blocks()
 function get_block_configs()
 {
     $error_reporting_level = error_reporting(0);
-    require_once __DIR__ . '/../xoops_version.php';
+    require_once dirname(__DIR__) . '/xoops_version.php';
     error_reporting($error_reporting_level);
     if (empty($modversion['blocks'])) {
         return [];
@@ -338,7 +340,6 @@ if (!empty($_POST['submit'])) {
     redirect_header(XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . "/admin/myblocksadmin.php$query4redirect", 1, _AM_SYSTEM_DBUPDATED);
 }
 
-include XOOPS_ROOT_PATH . '/modules/' . $xoopsModule->getVar('dirname') . '/class/utility.php';
 xoops_cp_header();
 
 if (file_exists('./mymenu.php')) {

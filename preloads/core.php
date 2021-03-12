@@ -7,27 +7,25 @@
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- */
+*/
 
 /**
- * @copyright   XOOPS Project (https://xoops.org)
- * @license     http://www.fsf.org/copyleft/gpl.html GNU public license
- * @author      mamba <mambax7@gmail.com>
+ * @copyright       XOOPS Project (https://xoops.org)
+ * @license         GNU GPL 2 (https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
+ * @author          XOOPS Project <www.xoops.org> <www.xoops.ir>
  */
-
-use Xmf\Request;
-
-
-class Wflinks extends \Xmf\Module\Helper {
+/**
+ * Class WflinksCorePreload
+ */
+class WflinksCorePreload extends \XoopsPreloadItem
+{
+    // to add PSR-4 autoloader
 
     /**
-     * Init the module
-     *
-     * @return null|void
+     * @param $args
      */
-    public function init()
+    public static function eventCoreIncludeCommonEnd($args)
     {
-        $this->dirname = basename(dirname(__DIR__));
+        require __DIR__ . '/autoloader.php';
     }
-
 }
