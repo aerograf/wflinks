@@ -9,15 +9,15 @@
  */
 
 use Xmf\Module\Admin;
-use XoopsModules\Wflinks\{
-    Helper
+use XoopsModules\Wflinks\{Helper
 };
+
 /** @var Admin $adminObject */
 /** @var Helper $helper */
 
 include dirname(__DIR__) . '/preloads/autoloader.php';
 
-$moduleDirName = basename(dirname(__DIR__));
+$moduleDirName      = basename(dirname(__DIR__));
 $moduleDirNameUpper = mb_strtoupper($moduleDirName);
 
 $helper = Helper::getInstance();
@@ -113,9 +113,9 @@ if (is_object($helper->getModule()) && $helper->getConfig('displayDeveloperTools
         'icon'  => $pathIcon32 . '/database_go.png',
     ];
 }
-    
+
 $adminmenu[] = [
     'title' => _MI_WFL_ABOUT,
-    'link' => 'admin/about.php',
-    'icon' => $pathIcon32 . '/about.png',
+    'link'  => 'admin/about.php',
+    'icon'  => $pathIcon32 . '/about.png',
 ];

@@ -11,8 +11,6 @@
  * @param mixed $redirect
  */
 
-
-
 // checkBlockgroups()
 //
 // @param integer $cid
@@ -69,13 +67,16 @@ function b_wflinks_top_show($options)
     $moduleDirName = basename(dirname(__DIR__));
     global $xoopsDB;
 
-    $block           = [];
-    $time            = time();
-    $moduleHandler   = xoops_getHandler('module');
-    $wflModule       = $moduleHandler->getByDirname($moduleDirName);
+    $block = [];
+    $time  = time();
+    /** @var \XoopsModuleHandler $moduleHandler */
+    $moduleHandler = xoops_getHandler('module');
+    $wflModule     = $moduleHandler->getByDirname($moduleDirName);
+    /* @var \XoopsConfigHandler $configHandler */
+    /** @var \XoopsConfigHandler $configHandler */
     $configHandler   = xoops_getHandler('config');
     $wflModuleConfig = $configHandler->getConfigsByCat(0, $wflModule->getVar('mid'));
-    $myts          = MyTextSanitizer:: getInstance();
+    $myts            = MyTextSanitizer:: getInstance();
 
     $result = $xoopsDB->query('SELECT lid, cid, title, published, hits FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE published > 0 AND published <= ' . $time . ' AND (expired = 0 OR expired > ' . $time . ') AND offline = 0 ORDER BY ' . $options[0] . ' DESC', $options[1], 0);
     while (false !== ($myrow = $xoopsDB->fetchArray($result))) {
@@ -83,7 +84,7 @@ function b_wflinks_top_show($options)
             continue;
         }
         $linkload = [];
-        $title    = htmlspecialchars($myrow['title']);
+        $title    = htmlspecialchars($myrow['title'], ENT_QUOTES | ENT_HTML5);
         if (!XOOPS_USE_MULTIBYTES) {
             if (mb_strlen($myrow['title']) >= $options[2]) {
                 $title = mb_substr($myrow['title'], 0, $options[2] - 1) . '...';

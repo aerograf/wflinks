@@ -17,8 +17,6 @@
  * @author         XOOPS Development Team
  */
 
-
-
 require_once XOOPS_ROOT_PATH . '/class/xoopsformloader.php';
 $form = new \XoopsThemeForm($block['form_title'], 'blockform', 'admin.php');
 if (isset($block['name'])) {
@@ -61,6 +59,7 @@ if ($block['is_custom']) {
     $form->addElement($ctype_select);
 } else {
     if (!defined('XOOPS_ORETEKI') && '' !== $block['template']) {
+        /** @var \XoopsTplfileHandler $tplfileHandler */
         $tplfileHandler = xoops_getHandler('tplfile');
         $btemplate      = $tplfileHandler->find($GLOBALS['xoopsConfig']['template_set'], 'block', $block['bid']);
         if (count($btemplate) > 0) {

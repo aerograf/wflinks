@@ -15,8 +15,8 @@ require_once __DIR__ . '/header.php';
 /** @var Wflinks\Helper $helper */
 $helper = Wflinks\Helper::getInstance();
 
-$op      = Wflinks\Utility::cleanRequestVars($_REQUEST, 'op', '');
-$lid     = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', 0);
+$op      = \Xmf\Request::getString('op', '');
+$lid     = \Xmf\Request::getInt('lid', 0);
 $lid     = (int)$lid;
 $buttonn = _MD_WFL_SUBMITBROKEN;
 $buttonn = mb_strtolower($buttonn);
@@ -27,7 +27,7 @@ switch (mb_strtolower($op)) {
 
         $sender = (is_object($xoopsUser) && null !== $xoopsUser) ? $xoopsUser->getVar('uid') : 0;
         $ip     = getenv('REMOTE_ADDR');
-        $title  = Wflinks\Utility::cleanRequestVars($_REQUEST, 'title', '');
+        $title  = \Xmf\Request::getString('title', '');
         $title  = $myts->addSlashes($title);
         $time   = time();
 
@@ -47,7 +47,8 @@ switch (mb_strtolower($op)) {
             // Send notifications
             $tags                      = [];
             $tags['BROKENREPORTS_URL'] = XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/admin/main.php?op=listBrokenlinks';
-            $notificationHandler       = xoops_getHandler('notification');
+            /** @var \XoopsNotificationHandler $notificationHandler */
+            $notificationHandler = xoops_getHandler('notification');
             $notificationHandler->triggerEvent('global', 0, 'link_broken', $tags);
 
             // Send email to the owner of the linkload stating that it is broken
@@ -55,12 +56,13 @@ switch (mb_strtolower($op)) {
             $link_arr = $xoopsDB->fetchArray($xoopsDB->query($sql));
             unset($sql);
 
+            /** @var \XoopsMemberHandler $memberHandler */
             $memberHandler = xoops_getHandler('member');
             $submit_user   = $memberHandler->getUser($link_arr['submitter']);
             if (is_object($submit_user) && !empty($submit_user)) {
                 $subdate = formatTimestamp($link_arr['date'], $helper->getConfig('dateformat'));
                 $cid     = $link_arr['cid'];
-                $title   = htmlspecialchars($link_arr['title']);
+                $title   = htmlspecialchars($link_arr['title'], ENT_QUOTES | ENT_HTML5);
                 $subject = _MD_WFL_BROKENREPORTED;
 
                 $xoopsMailer = xoops_getMailer();
@@ -106,7 +108,7 @@ switch (mb_strtolower($op)) {
         $broke_arr = $xoopsDB->fetchArray($xoopsDB->query($sql));
 
         if (is_array($broke_arr)) {
-            $broken['title']        = htmlspecialchars($link_arr['title']);
+            $broken['title']        = htmlspecialchars($link_arr['title'], ENT_QUOTES | ENT_HTML5);
             $broken['id']           = $broke_arr['reportid'];
             $broken['reporter']     = \XoopsUserUtility::getUnameFromId($broke_arr['sender']);
             $broken['date']         = formatTimestamp($broke_arr['date'], $helper->getConfig('dateformat'));
@@ -120,7 +122,7 @@ switch (mb_strtolower($op)) {
             }
 
             // file info
-            $link['title']     = htmlspecialchars($link_arr['title']);
+            $link['title']     = htmlspecialchars($link_arr['title'], ENT_QUOTES | ENT_HTML5);
             $time              = ($link_arr['published'] > 0) ? $link_arr['published'] : $link_arr['updated'];
             $link['updated']   = formatTimestamp($time, $helper->getConfig('dateformat'));
             $is_updated        = (0 != $link_arr['updated']) ? _MD_WFL_UPDATEDON : _MD_WFL_SUBMITDATE;

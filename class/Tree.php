@@ -19,8 +19,6 @@ namespace XoopsModules\Wflinks;
  * @author          Kazumi Ono (AKA onokazu) http://www.myweb.ne.jp/, http://jp.xoops.org/
  */
 
-
-
 /**
  * Abstract base class for forms
  *
@@ -39,7 +37,6 @@ class Tree
     public $order; //specifies the order of query results
     public $title; // name of a field in table $table which will be used when  selection box and paths are generated
     public $db;
-
     //constructor of class XoopsTree
     //sets the names of table, unique id, and parend id
 
@@ -180,7 +177,7 @@ class Tree
         }
         list($parentid, $name) = $this->db->fetchRow($result);
         $myts = \MyTextSanitizer::getInstance();
-        $name = htmlspecialchars($name);
+        $name = htmlspecialchars($name, ENT_QUOTES | ENT_HTML5);
         $path = '/' . $name . $path . '';
         if (0 == $parentid) {
             return $path;
@@ -231,7 +228,7 @@ class Tree
             $arr = $this->getChildTreeArray($catid, $order);
             foreach ($arr as $option) {
                 $option['prefix'] = \str_replace('.', '--', $option['prefix']);
-                $catpath          = $option['prefix'] . '&nbsp;' . htmlspecialchars($option[$title]);
+                $catpath          = $option['prefix'] . '&nbsp;' . htmlspecialchars($option[$title], ENT_QUOTES | ENT_HTML5);
                 if ($option[$this->id] == $preset_id) {
                     $sel = ' selected';
                 }
@@ -262,7 +259,7 @@ class Tree
         }
         list($parentid, $name) = $this->db->fetchRow($result);
         $myts = \MyTextSanitizer::getInstance();
-        $name = htmlspecialchars($name);
+        $name = htmlspecialchars($name, ENT_QUOTES | ENT_HTML5);
         $path = "<a href='" . $funcURL . '&amp;' . $this->id . '=' . $sel_id . "'>" . $name . '</a>' . $path . '';
         if (0 == $parentid) {
             return $path;

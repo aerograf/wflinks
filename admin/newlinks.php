@@ -15,9 +15,9 @@ require_once __DIR__ . '/admin_header.php';
 /** @var Wflinks\Helper $helper */
 $helper = Wflinks\Helper::getInstance();
 
-$op        = Wflinks\Utility::cleanRequestVars($_REQUEST, 'op', '');
-$lid       = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', '');
-$requestid = Wflinks\Utility::cleanRequestVars($_REQUEST, 'requestid', 0);
+$op        = \Xmf\Request::getString('op', '');
+$lid       = \Xmf\Request::getInt('lid', 0);
+$requestid = \Xmf\Request::getInt('requestid', 0);
 
 switch (mb_strtolower($op)) {
     case 'approve':
@@ -47,7 +47,8 @@ switch (mb_strtolower($op)) {
             $row                   = $xoopsDB->fetchArray($result);
             $tags['CATEGORY_NAME'] = $row['title'];
             $tags['CATEGORY_URL']  = XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/viewcat.php?cid=' . $cid;
-            $notificationHandler   = xoops_getHandler('notification');
+            /** @var \XoopsNotificationHandler $notificationHandler */
+            $notificationHandler = xoops_getHandler('notification');
             $notificationHandler->triggerEvent('global', 0, 'new_link', $tags);
             $notificationHandler->triggerEvent('category', $cid, 'new_link', $tags);
             if (1 == (int)$notifypub) {
@@ -62,7 +63,7 @@ switch (mb_strtolower($op)) {
     default:
 
         xoops_load('XoopsUserUtility');
-        $start = Wflinks\Utility::cleanRequestVars($_REQUEST, 'start', 0);
+        $start = \Xmf\Request::getInt('start', 0);
         $sql   = 'SELECT * FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE published = 0 ORDER BY lid DESC';
         if (!$result = $xoopsDB->query($sql)) {
             $logger->handleError(E_USER_WARNING, $sql, __FILE__, __LINE__);
@@ -94,9 +95,9 @@ switch (mb_strtolower($op)) {
             while (false !== ($new = $xoopsDB->fetchArray($new_array))) {
                 $lid       = (int)$new['lid'];
                 $rating    = number_format($new['rating'], 2);
-                $title     = htmlspecialchars($new['title']);
-                $url       = urldecode(htmlspecialchars($new['url']));
-                $logourl   = htmlspecialchars($new['screenshot']);
+                $title     = htmlspecialchars($new['title'], ENT_QUOTES | ENT_HTML5);
+                $url       = urldecode(htmlspecialchars($new['url'], ENT_QUOTES | ENT_HTML5));
+                $logourl   = htmlspecialchars($new['screenshot'], ENT_QUOTES | ENT_HTML5);
                 $submitter = \XoopsUserUtility::getUnameFromId($new['submitter']);
                 $datetime  = formatTimestamp($new['date'], $helper->getConfig('dateformatadmin'));
 

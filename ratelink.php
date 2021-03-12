@@ -15,7 +15,7 @@ require_once __DIR__ . '/header.php';
 global $myts, $xoTheme;
 
 // Check if linkload POSTER is voting (UNLESS Anonymous users allowed to post)
-$lid = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', 0);
+$lid = \Xmf\Request::getInt('lid', 0);
 $lid = (int)$lid;
 
 $ip         = getenv('REMOTE_ADDR');
@@ -52,9 +52,9 @@ if (!empty($_POST['submit'])) {
     // Make sure only 1 anonymous from an IP in a single day.
     $anonwaitdays = 1;
     $ip           = getenv('REMOTE_ADDR');
-    $lid          = Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', 0);
-    $cid          = Wflinks\Utility::cleanRequestVars($_REQUEST, 'cid', 0);
-    $rating       = Wflinks\Utility::cleanRequestVars($_REQUEST, 'rating', 0);
+    $lid          = \Xmf\Request::getInt('lid', 0);
+    $cid          = \Xmf\Request::getInt('cid', 0);
+    $rating       = \Xmf\Request::getInt('rating', 0);
     $title        = $myts->addSlashes(trim($_POST['title']));
     $lid          = (int)$lid;
     $cid          = (int)$cid;
@@ -80,7 +80,7 @@ if (!empty($_POST['submit'])) {
     require XOOPS_ROOT_PATH . '/header.php';
 
     $catarray['imageheader'] = Wflinks\Utility::getImageHeader();
-    $cid                     = Wflinks\Utility::cleanRequestVars($_REQUEST, 'cid', 0);
+    $cid                     = \Xmf\Request::getInt('cid', 0);
     $cid                     = (int)$cid;
 
     $catarray['imageheader'] = Wflinks\Utility::getImageHeader();
@@ -90,7 +90,7 @@ if (!empty($_POST['submit'])) {
 
     $result = $xoopsDB->query('SELECT title FROM ' . $xoopsDB->prefix('wflinks_links') . ' WHERE lid=' . $lid);
     list($title) = $xoopsDB->fetchRow($result);
-    $xoopsTpl->assign('link', ['id' => $lid, 'cid' => $cid, 'title' => htmlspecialchars($title)]);
+    $xoopsTpl->assign('link', ['id' => $lid, 'cid' => $cid, 'title' => htmlspecialchars($title, ENT_QUOTES | ENT_HTML5)]);
 
     if (is_object($xoTheme)) {
         $xoTheme->addMeta('meta', 'robots', 'noindex,nofollow');

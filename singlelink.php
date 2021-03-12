@@ -16,8 +16,8 @@ require_once __DIR__ . '/header.php';
 $helper = Wflinks\Helper::getInstance();
 global $xoopsTpl, $xoTheme;
 
-$lid = (int)Wflinks\Utility::cleanRequestVars($_REQUEST, 'lid', 0);
-$cid = (int)Wflinks\Utility::cleanRequestVars($_REQUEST, 'cid', 0);
+$lid = \Xmf\Request::getInt('lid', 0);
+$cid = \Xmf\Request::getInt('cid', 0);
 
 $sql2 = 'SELECT count(*) FROM '
         . $xoopsDB->prefix('wflinks_links')
@@ -199,7 +199,7 @@ $sql    = 'SELECT lid, cid, title, published FROM ' . $xoopsDB->prefix('wflinks_
 $result = $xoopsDB->query($sql, 10, 0);
 
 while (false !== ($arr = $xoopsDB->fetchArray($result))) {
-    $linkuid['title']     = htmlspecialchars($arr['title']);
+    $linkuid['title']     = htmlspecialchars($arr['title'], ENT_QUOTES | ENT_HTML5);
     $linkuid['lid']       = $arr['lid'];
     $linkuid['cid']       = $arr['cid'];
     $linkuid['published'] = formatTimestamp($arr['published'], $helper->getConfig('dateformat'));

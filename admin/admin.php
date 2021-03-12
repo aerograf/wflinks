@@ -25,7 +25,7 @@ if (empty($fct)) {
 // if (isset($fct) && $fct == "users") {
 // $xoopsOption['pagetype'] = "user";
 // }
-require_once dirname(dirname(dirname(__DIR__))) . '/mainfile.php';
+require_once dirname(__DIR__, 3) . '/mainfile.php';
 // include "../../mainfile.php"; GIJ
 require XOOPS_ROOT_PATH . '/include/cp_functions.php';
 
@@ -53,6 +53,7 @@ if (0 != $admintest) {
             xoops_loadLanguage('admin/' . $fct, 'system');
 
             require XOOPS_ROOT_PATH . '/modules/system/admin/' . $fct . '/xoops_version.php';
+            /** @var \XoopsGroupPermHandler $grouppermHandler */
             $grouppermHandler = xoops_getHandler('groupperm');
             $category         = !empty($modversion['category']) ? (int)$modversion['category'] : 0;
             unset($modversion);
@@ -93,6 +94,7 @@ if (false !== $error) {
     $groups = $xoopsUser->getGroups();
     $all_ok = false;
     if (!in_array(XOOPS_GROUP_ADMIN, $groups)) {
+        /** @var \XoopsGroupPermHandler $grouppermHandler */
         $grouppermHandler = xoops_getHandler('groupperm');
         $ok_syscats       = $grouppermHandler->getItemIds('system_admin', $groups);
     } else {

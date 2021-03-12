@@ -17,8 +17,6 @@
  * @author       XOOPS Development Team, Kazumi Ono (AKA onokazu)
  */
 
-
-
 require_once XOOPS_ROOT_PATH . '/class/xoopsform/formelement.php';
 require_once XOOPS_ROOT_PATH . '/class/xoopsform/formhidden.php';
 require_once XOOPS_ROOT_PATH . '/class/xoopsform/formhiddentoken.php';
@@ -158,9 +156,11 @@ class MyXoopsGroupPermForm extends \XoopsForm
             $this->_itemTree[$item_id]['allchild'] = [];
             $this->_loadAllChildItemIds($item_id, $this->_itemTree[$item_id]['allchild']);
         }
+        /** @var \XoopsGroupPermHandler $grouppermHandler */
         $grouppermHandler = xoops_getHandler('groupperm');
-        $memberHandler    = xoops_getHandler('member');
-        $glist            = $memberHandler->getGroupList();
+        /** @var \XoopsMemberHandler $memberHandler */
+        $memberHandler = xoops_getHandler('member');
+        $glist         = $memberHandler->getGroupList();
         foreach (array_keys($glist) as $i) {
             // get selected item id(s) for each group
             $selected = $grouppermHandler->getItemIds($this->_permName, $i, $this->_modid);

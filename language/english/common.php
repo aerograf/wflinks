@@ -56,7 +56,7 @@ define('CO_' . $moduleDirNameUpper . '_ERROR_BAD_REMOVE', 'Could not delete %s')
 define('CO_' . $moduleDirNameUpper . '_ERROR_NO_PLUGIN', 'Could not load plugin');
 
 //Help
-define('CO_' . $moduleDirNameUpper . '_DIRNAME', basename(dirname(dirname(__DIR__))));
+define('CO_' . $moduleDirNameUpper . '_DIRNAME', basename(dirname(__DIR__, 2)));
 define('CO_' . $moduleDirNameUpper . '_HELP_HEADER', __DIR__ . '/help/helpheader.tpl');
 define('CO_' . $moduleDirNameUpper . '_BACK_2_ADMIN', 'Back to Administration of ');
 define('CO_' . $moduleDirNameUpper . '_OVERVIEW', 'Overview');
@@ -173,7 +173,7 @@ define('CO_' . $moduleDirNameUpper . '_' . 'IMAGE_UPLOAD_PATH', 'Image Upload pa
 define('CO_' . $moduleDirNameUpper . '_' . 'IMAGE_UPLOAD_PATH_DSC', 'Path for uploading images');
 
 define('CO_' . $moduleDirNameUpper . '_' . 'IMAGE_FILE_SIZE', 'Image File Size (in Bytes)');
-define('CO_' . $moduleDirNameUpper . '_' . 'IMAGE_FILE_SIZE_DSC','The maximum file size of the image file (in Bytes)');
+define('CO_' . $moduleDirNameUpper . '_' . 'IMAGE_FILE_SIZE_DSC', 'The maximum file size of the image file (in Bytes)');
 
 //Preferences
 define('CO_' . $moduleDirNameUpper . '_' . 'TRUNCATE_LENGTH', 'Number of Characters to truncate to the long text field');

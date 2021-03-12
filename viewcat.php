@@ -15,10 +15,9 @@ require_once __DIR__ . '/header.php';
 $helper = Wflinks\Helper::getInstance();
 
 // Begin Main page Heading etc
-$cid        = Wflinks\Utility::cleanRequestVars($_REQUEST, 'cid', 0);
-$selectdate = Wflinks\Utility::cleanRequestVars($_REQUEST, 'selectdate', '');
-$list       = Wflinks\Utility::cleanRequestVars($_REQUEST, 'list', '');
-$cid        = (int)$cid;
+$cid        = \Xmf\Request::getInt('cid', 0);
+$selectdate = \Xmf\Request::getString('selectdate', '');
+$list       = \Xmf\Request::getString('list', '');
 $catsort    = $helper->getConfig('sortcats');
 
 $mytree = new Wflinks\Tree($xoopsDB->prefix('wflinks_cat'), 'cid', 'pid');
@@ -65,7 +64,7 @@ if (is_array($arr) > 0 && !$list && !$selectdate) {
                 if ($space > 0) {
                     $infercategories .= ', ';
                 }
-                $infercategories .= "<a href='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/viewcat.php?cid=' . $sub_ele['cid'] . "'>" . htmlspecialchars($sub_ele['title']) . '</a> (' . $hassubitems['count'] . ')';
+                $infercategories .= "<a href='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/viewcat.php?cid=' . $sub_ele['cid'] . "'>" . htmlspecialchars($sub_ele['title'], ENT_QUOTES | ENT_HTML5) . '</a> (' . $hassubitems['count'] . ')';
                 ++$space;
                 ++$chcount;
             }
@@ -92,7 +91,7 @@ if (is_array($arr) > 0 && !$list && !$selectdate) {
         $xoopsTpl->append(
             'subcategories',
             [
-                'title'           => htmlspecialchars($ele['title']),
+                'title'           => htmlspecialchars($ele['title'], ENT_QUOTES | ENT_HTML5),
                 'id'              => $ele['cid'],
                 'image'           => XOOPS_URL . "/$imgurl",
                 'infercategories' => $infercategories,
@@ -133,7 +132,7 @@ $xoopsTpl->assign('catarray', $catarray);
 // Extract linkload information from database
 $xoopsTpl->assign('show_categort_title', true);
 
-$start   = Wflinks\Utility::cleanRequestVars($_REQUEST, 'start', 0);
+$start   = \Xmf\Request::getInt('start', 0);
 $orderby = (isset($_REQUEST['orderby'])
             && !empty($_REQUEST['orderby'])) ? Wflinks\Utility::convertOrderByIn(htmlspecialchars($_REQUEST['orderby'], ENT_QUOTES | ENT_HTML5)) : Wflinks\Utility::convertOrderByIn($helper->getConfig('linkxorder'));
 

@@ -18,8 +18,8 @@ $helper = Wflinks\Helper::getInstance();
 
 global $mytree;
 xoops_load('XoopsUserUtility');
-$op        = Wflinks\Utility::cleanRequestVars($_REQUEST, 'op', '');
-$requestid = Wflinks\Utility::cleanRequestVars($_REQUEST, 'requestid', 0);
+$op        = \Xmf\Request::getString('op', '');
+$requestid = \Xmf\Request::getInt('requestid', 0);
 
 switch (mb_strtolower($op)) {
     case 'listmodreqshow':
@@ -59,7 +59,8 @@ switch (mb_strtolower($op)) {
                 $content = $row['title'];
             }
             if ('forumid' === $key) {
-                $content          = '';
+                $content = '';
+                /** @var \XoopsModuleHandler $moduleHandler */
                 $moduleHandler    = xoops_getHandler('module');
                 $xoopsforumModule = $moduleHandler->getByDirname('newbb');
                 $sql              = 'SELECT title FROM ' . $xoopsDB->prefix('bb_categories') . ' WHERE cid=' . $content;
@@ -98,7 +99,8 @@ switch (mb_strtolower($op)) {
                 $content = $row['title'];
             }
             if ('forumid' === $key) {
-                $content          = '';
+                $content = '';
+                /** @var \XoopsModuleHandler $moduleHandler */
                 $moduleHandler    = xoops_getHandler('module');
                 $xoopsforumModule = $moduleHandler->getByDirname('newbb');
                 $sql              = 'SELECT title FROM ' . $xoopsDB->prefix('bb_categories') . ' WHERE cid=' . $content;

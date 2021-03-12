@@ -64,9 +64,9 @@ function createCat($cid = 0)
     if ($cid) {
         $sql          = 'SELECT * FROM ' . $xoopsDB->prefix('wflinks_cat') . " WHERE cid=$cid";
         $cat_arr      = $xoopsDB->fetchArray($xoopsDB->query($sql));
-        $title        = htmlspecialchars($cat_arr['title']);
-        $imgurl       = htmlspecialchars($cat_arr['imgurl']);
-        $description  = htmlspecialchars($cat_arr['description']);
+        $title        = htmlspecialchars($cat_arr['title'], ENT_QUOTES | ENT_HTML5);
+        $imgurl       = htmlspecialchars($cat_arr['imgurl'], ENT_QUOTES | ENT_HTML5);
+        $description  = htmlspecialchars($cat_arr['description'], ENT_QUOTES | ENT_HTML5);
         $nohtml       = (int)$cat_arr['nohtml'];
         $nosmiley     = (int)$cat_arr['nosmiley'];
         $noxcodes     = (int)$cat_arr['noxcodes'];
@@ -79,6 +79,7 @@ function createCat($cid = 0)
         $banner_id    = $cat_arr['banner_id'];
         $heading      = _AM_WFL_CCATEGORY_MODIFY;
 
+        /** @var \XoopsGroupPermHandler $grouppermHandler */
         $grouppermHandler = xoops_getHandler('groupperm');
         $groups           = $grouppermHandler->getGroupIds('WFLinkCatPerm', $cid, $xoopsModule->getVar('mid'));
         $groups           = $groups;
@@ -233,7 +234,7 @@ switch ($op) {
             }
             redirect_header('category.php?op=default', 1, _AM_WFL_CCATEGORY_MODIFY_MOVED);
         } else {
-            $cid = isset($_POST['cid']) ? $_POST['cid'] : $_GET['cid'];
+            $cid = $_POST['cid'] ?? $_GET['cid'];
 
             xoops_cp_header();
 
@@ -307,7 +308,8 @@ switch ($op) {
             $tags                  = [];
             $tags['CATEGORY_NAME'] = $title;
             $tags['CATEGORY_URL']  = XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/viewcat.php?cid=' . $newid;
-            $notificationHandler   = xoops_getHandler('notification');
+            /** @var \XoopsNotificationHandler $notificationHandler */
+            $notificationHandler = xoops_getHandler('notification');
             $notificationHandler->triggerEvent('global', 0, 'new_category', $tags);
             $database_mess = _AM_WFL_CCATEGORY_CREATED;
         }

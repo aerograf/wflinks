@@ -37,7 +37,6 @@ use XoopsModules\Wflinks\Constants;
 class Utility extends Common\SysUtility
 {
     //--------------- Custom module methods -----------------------------
-
     /**
      * getHandler()
      *
@@ -82,7 +81,8 @@ class Utility extends Common\SysUtility
     {
         global $xoopsUser, $xoopsModule;
 
-        $groups           = \is_object($xoopsUser) ? $xoopsUser->getGroups() : XOOPS_GROUP_ANONYMOUS;
+        $groups = \is_object($xoopsUser) ? $xoopsUser->getGroups() : XOOPS_GROUP_ANONYMOUS;
+        /** @var \XoopsGroupPermHandler $grouppermHandler */
         $grouppermHandler = \xoops_getHandler('groupperm');
         if (!$grouppermHandler->checkRight($permType, $cid, $groups, $xoopsModule->getVar('mid'))) {
             if (false === $redirect) {
@@ -152,61 +152,6 @@ class Utility extends Common\SysUtility
 
         return $ret;
     }
-
-    /**
-     * @param      $array
-     * @param null $name
-     * @param null $def
-     * @param bool $strict
-     * @param int  $lengthcheck
-     *
-     * @return array|int|mixed|null|string
-     */
-    public static function cleanRequestVars($array, $name = null, $def = null, $strict = false, $lengthcheck = 15)
-    {
-        // Sanitise $_request for further use.  This method gives more control and security.
-        // Method is more for functionality rather than beauty at the moment, will correct later.
-        unset($array['usercookie'], $array['PHPSESSID']);
-
-        if (\is_array($array) && null === $name) {
-            $globals = [];
-            foreach (\array_keys($array) as $k) {
-                $value = \strip_tags(\trim($array[$k]));
-                if ('' !== $value >= $lengthcheck) {
-                    return null;
-                }
-                if (ctype_digit($value)) {
-                    $value = (int)$value;
-                } else {
-                    if (true === $strict) {
-                        $value = \preg_replace('/\W/', '', \trim($value));
-                    }
-                    $value = mb_strtolower((string)$value);
-                }
-                $globals[$k] = $value;
-            }
-
-            return $globals;
-        }
-        if (!\array_key_exists($name, $array) || !isset($array[$name])) {
-            return $def;
-        }
-
-        $value = \strip_tags(\trim($array[$name]));
-        if (ctype_digit($value)) {
-            $value = (int)$value;
-        } else {
-            if (true === $strict) {
-                $value = \preg_replace('/\W/', '', \trim($value));
-            }
-            $value = mb_strtolower((string)$value);
-        }
-
-        return $value;
-    }
-
-    // toolbar()
-    // @return
 
     /**
      * @param int $cid
@@ -472,10 +417,10 @@ class Utility extends Common\SysUtility
             && \is_dir(XOOPS_ROOT_PATH . "/{$imgsource}/{$image}")) {
             $showimage .= "<img src='" . XOOPS_URL . "/{$imgsource}/{$image}' border='0' alt='" . $alttext . "'></a>";
         } elseif ($xoopsUser && $xoopsUser->isAdmin($xoopsModule->getVar('mid'))) {
-                $showimage .= "<img src='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . "/assets/images/brokenimg.gif' alt='" . _MD_WFL_ISADMINNOTICE . "'></a>";
-            } else {
-                $showimage .= "<img src='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . "/assets/images/blank.gif' alt='" . $alttext . "'></a>";
-            }
+            $showimage .= "<img src='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . "/assets/images/brokenimg.gif' alt='" . _MD_WFL_ISADMINNOTICE . "'></a>";
+        } else {
+            $showimage .= "<img src='" . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . "/assets/images/blank.gif' alt='" . $alttext . "'></a>";
+        }
 
         \clearstatcache();
 
@@ -655,16 +600,15 @@ class Utility extends Common\SysUtility
                 $errors = $uploader->getErrors();
                 \redirect_header($redirecturl, 2, $errors);
             } elseif ($redirect) {
-                    \redirect_header($redirecturl, 1, _AM_WFL_UPLOADFILE);
-                } else {
-                    if (\is_file($uploader->savedDestination)) {
-                        $down['url']  = XOOPS_URL . '/' . $uploaddir . '/' . mb_strtolower($uploader->savedFileName);
-                        $down['size'] = \filesize(XOOPS_ROOT_PATH . '/' . $uploaddir . '/' . mb_strtolower($uploader->savedFileName));
-                    }
-
-                    return $down;
+                \redirect_header($redirecturl, 1, _AM_WFL_UPLOADFILE);
+            } else {
+                if (\is_file($uploader->savedDestination)) {
+                    $down['url']  = XOOPS_URL . '/' . $uploaddir . '/' . mb_strtolower($uploader->savedFileName);
+                    $down['size'] = \filesize(XOOPS_ROOT_PATH . '/' . $uploaddir . '/' . mb_strtolower($uploader->savedFileName));
                 }
 
+                return $down;
+            }
         } else {
             $errors = $uploader->getErrors();
             \redirect_header($redirecturl, 1, $errors);
@@ -735,8 +679,8 @@ class Utility extends Common\SysUtility
         $lid = $published['lid'];
         $cid = $published['cid'];
 
-        $title     = "<a href='../singlelink.php?cid=" . $published['cid'] . '&amp;lid=' . $published['lid'] . "'>" . htmlspecialchars(\trim($published['title'])) . '</a>';
-        $maintitle = \urlencode(htmlspecialchars(\trim($published['title'])));
+        $title     = "<a href='../singlelink.php?cid=" . $published['cid'] . '&amp;lid=' . $published['lid'] . "'>" . htmlspecialchars(\trim($published['title']), ENT_QUOTES | ENT_HTML5) . '</a>';
+        $maintitle = \urlencode(htmlspecialchars(\trim($published['title']), ENT_QUOTES | ENT_HTML5));
         $cattitle  = static::getCategoryTitle($published['cid']);
         $submitter = \XoopsUserUtility::getUnameFromId($published['submitter']);
         $hwhoisurl = \str_replace('http://', '', $published['url']);
@@ -759,7 +703,7 @@ class Utility extends Common\SysUtility
         }
         $icon = "<a href='main.php?op=edit&amp;lid=" . $lid . "' title='" . _AM_WFL_ICO_EDIT . "'>" . $imageArray['editimg'] . '</a>&nbsp;';
         $icon .= "<a href='main.php?op=delete&amp;lid=" . $lid . "' title='" . _AM_WFL_ICO_DELETE . "'>" . $imageArray['deleteimg'] . '</a>&nbsp;';
-        $icon .= "<a href='altcat.php?op=main&amp;cid=" . $cid . '&amp;lid=' . $lid . '&amp;title=' . htmlspecialchars(\trim($published['title'])) . "' title='" . _AM_WFL_ALTCAT_CREATEF . "'>" . $imageArray['altcat'] . '</a>&nbsp;';
+        $icon .= "<a href='altcat.php?op=main&amp;cid=" . $cid . '&amp;lid=' . $lid . '&amp;title=' . htmlspecialchars(\trim($published['title']), ENT_QUOTES | ENT_HTML5) . "' title='" . _AM_WFL_ALTCAT_CREATEF . "'>" . $imageArray['altcat'] . '</a>&nbsp;';
         $icon .= '<a href="http://whois.domaintools.com/' . $hwhoisurl . '" target="_blank"><img src="' . XOOPS_URL . '/modules/' . $xoopsModule->getVar('dirname') . '/assets/images/icon/domaintools.png" alt="WHOIS" title="WHOIS" align="absmiddle"></a>';
 
         echo "
@@ -910,70 +854,65 @@ class Utility extends Common\SysUtility
             case 'tinyeditor':
                 if ($x22) {
                     $editor = new \XoopsFormEditor($caption, 'tinyeditor', $editor_configs);
+                } elseif (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/tinyeditor/formtinyeditortextarea.php')) {
+                    require_once XOOPS_ROOT_PATH . '/class/xoopseditor/tinyeditor/formtinyeditortextarea.php';
+                    $editor = new \XoopsFormTinyeditorTextArea(
+                        [
+                            'caption' => $caption,
+                            'name'    => $name,
+                            'value'   => $value,
+                            'width'   => '100%',
+                            'height'  => '400px',
+                        ]
+                    );
+                } elseif ($dhtml) {
+                    $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 50, 60);
                 } else {
-                    if (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/tinyeditor/formtinyeditortextarea.php')) {
-                        require_once XOOPS_ROOT_PATH . '/class/xoopseditor/tinyeditor/formtinyeditortextarea.php';
-                        $editor = new \XoopsFormTinyeditorTextArea(
-                            [
-                                'caption' => $caption,
-                                'name'    => $name,
-                                'value'   => $value,
-                                'width'   => '100%',
-                                'height'  => '400px',
-                            ]
-                        );
-                    } elseif ($dhtml) {
-                            $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 50, 60);
-                        } else {
-                            $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
-                        }
+                    $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
                 }
                 break;
             case 'dhtmlext':
                 if ($x22) {
                     $editor = new \XoopsFormEditor($caption, 'dhtmlext', $editor_configs);
+                } elseif (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/dhtmlext/dhtmlext.php')) {
+                    require_once XOOPS_ROOT_PATH . '/class/xoopseditor/dhtmlext/dhtmlext.php';
+                    $editor = new \XoopsFormDhtmlTextAreaExtended($caption, $name, $value, 10, 50);
+                } elseif ($dhtml) {
+                    $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 50, 60);
                 } else {
-                    if (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/dhtmlext/dhtmlext.php')) {
-                        require_once XOOPS_ROOT_PATH . '/class/xoopseditor/dhtmlext/dhtmlext.php';
-                        $editor = new \XoopsFormDhtmlTextAreaExtended($caption, $name, $value, 10, 50);
-                    } elseif ($dhtml) {
-                            $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 50, 60);
-                        } else {
-                            $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
-                        }
+                    $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
                 }
+
                 break;
             case 'tinymce':
                 if ($x22) {
                     $editor = new \XoopsFormEditor($caption, 'tinymce', $editor_configs);
+                } elseif (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/tinymce/formtinymce.php')) {
+                    require_once XOOPS_ROOT_PATH . '/class/xoopseditor/tinymce/formtinymce.php';
+                    $editor = new \XoopsFormTinymce(
+                        [
+                            'caption' => $caption,
+                            'name'    => $name,
+                            'value'   => $value,
+                            'width'   => '100%',
+                            'height'  => '400px',
+                        ]
+                    );
+                } elseif (\is_readable(XOOPS_ROOT_PATH . '/editors/tinymce/formtinymce.php')) {
+                    require_once XOOPS_ROOT_PATH . '/editors/tinymce/formtinymce.php';
+                    $editor = new \XoopsFormTinymce(
+                        [
+                            'caption' => $caption,
+                            'name'    => $name,
+                            'value'   => $value,
+                            'width'   => '100%',
+                            'height'  => '400px',
+                        ]
+                    );
+                } elseif ($dhtml) {
+                    $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 20, 60);
                 } else {
-                    if (\is_readable(XOOPS_ROOT_PATH . '/class/xoopseditor/tinymce/formtinymce.php')) {
-                        require_once XOOPS_ROOT_PATH . '/class/xoopseditor/tinymce/formtinymce.php';
-                        $editor = new \XoopsFormTinymce(
-                            [
-                                'caption' => $caption,
-                                'name'    => $name,
-                                'value'   => $value,
-                                'width'   => '100%',
-                                'height'  => '400px',
-                            ]
-                        );
-                    } elseif (\is_readable(XOOPS_ROOT_PATH . '/editors/tinymce/formtinymce.php')) {
-                        require_once XOOPS_ROOT_PATH . '/editors/tinymce/formtinymce.php';
-                        $editor = new \XoopsFormTinymce(
-                            [
-                                'caption' => $caption,
-                                'name'    => $name,
-                                'value'   => $value,
-                                'width'   => '100%',
-                                'height'  => '400px',
-                            ]
-                        );
-                    } elseif ($dhtml) {
-                            $editor = new \XoopsFormDhtmlTextArea($caption, $name, $value, 20, 60);
-                        } else {
-                            $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
-                        }
+                    $editor = new \XoopsFormTextArea($caption, $name, $value, 7, 60);
                 }
                 break;
         }
@@ -1499,6 +1438,7 @@ class Utility extends Common\SysUtility
     {
         static $wfl_tag_module_included;
         if (!isset($wfl_tag_module_included)) {
+            /** @var \XoopsModuleHandler $moduleHandler */
             $modulesHandler = \xoops_getHandler('module');
             $tag_mod        = $modulesHandler->getByDirname('tag');
             if ($tag_mod) {
